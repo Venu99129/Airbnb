@@ -28,4 +28,16 @@ public class HotelAdminController {
         HotelDto hotel = hotelService.getHotelById(hotelId);
         return ResponseEntity.ok(hotel);
     }
+
+    @PutMapping(path = "/{hotelId}")
+    public ResponseEntity<HotelDto> updateHotelById(@PathVariable Long hotelId , @RequestBody HotelDto hotelDto){
+        HotelDto hotel = hotelService.updateHotelById(hotelId, hotelDto);
+        return ResponseEntity.ok(hotel);
+    }
+
+    @DeleteMapping(path = "/{hotelId}")
+    public ResponseEntity<Void> deleteHotelById(@PathVariable Long hotelId){
+        hotelService.deleteHotelById(hotelId);
+        return ResponseEntity.noContent().build();
+    }
 }
