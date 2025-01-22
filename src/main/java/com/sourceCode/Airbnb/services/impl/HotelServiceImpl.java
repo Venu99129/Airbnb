@@ -60,4 +60,16 @@ public class HotelServiceImpl implements HotelService {
         hotelRepository.deleteById(id);
         //need to do delete the future inventories
     }
+
+    @Override
+    public void activateHotel(Long hotelId) {
+        log.info("activating the hotel with ID : {}",hotelId);
+        Hotel hotel = hotelRepository
+                .findById(hotelId)
+                .orElseThrow(()-> new ResourceNotFoundException("Hotel Not found with ID :"+hotelId));
+
+        hotel.setActive(true);
+        // TODO : create inventory for future bookings
+
+    }
 }
