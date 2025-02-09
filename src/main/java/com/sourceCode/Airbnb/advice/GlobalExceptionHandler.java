@@ -2,6 +2,7 @@ package com.sourceCode.Airbnb.advice;
 
 import com.sourceCode.Airbnb.exceptions.IntegerFormatException;
 import com.sourceCode.Airbnb.exceptions.ResourceNotFoundException;
+import org.postgresql.util.PSQLException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<?>> resourceNotFountExceptionHandler(ResourceNotFoundException exception){
         ApiError apiError = ApiError.builder()
@@ -55,5 +57,13 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .build();
         return new ResponseEntity<>(new ApiResponse<>(apiError), apiError.getStatus());
+    }
+
+    @ExceptionHandler(PSQLException.class)
+    public ResponseEntity<ApiResponse<?>> psqlExceptionHandler(PSQLException exception){
+        ApiError apiError = ApiError.builder()
+                .message(exception.getMessage())
+                .status(HttpStatus.NOT_FOUND).build();
+        return new ResponseEntity<>(new ApiResponse<>(apiError) , apiError.getStatus());
     }
 }

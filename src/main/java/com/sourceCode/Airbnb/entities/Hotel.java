@@ -3,6 +3,7 @@ package com.sourceCode.Airbnb.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -13,6 +14,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
+@ToString
 @Table(name = "hotels")
 public class Hotel {
 
@@ -45,6 +47,7 @@ public class Hotel {
     private Boolean active;
 
     @OneToMany(mappedBy = "hotel",fetch = FetchType.LAZY)
+    @ToString.Exclude
     private Set<Room> rooms;
 
     @ManyToOne
