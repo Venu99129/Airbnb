@@ -9,7 +9,7 @@ public interface RoomService {
 
     RoomDto createNewRoom(Long hotelId,RoomDto roomDto);
 
-    Set<RoomDto> getAllRoomsINHotel(Long hotelId);
+    Set<RoomDto> getAllRoomsInHotel(Long hotelId);
 
     RoomDto getRoomById(Long roomId);
 

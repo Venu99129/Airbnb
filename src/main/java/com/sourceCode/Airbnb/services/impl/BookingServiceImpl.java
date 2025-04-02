@@ -6,11 +6,16 @@ import com.sourceCode.Airbnb.dtos.GuestDto;
 import com.sourceCode.Airbnb.entities.*;
 import com.sourceCode.Airbnb.entities.enums.BookingStatus;
 import com.sourceCode.Airbnb.exceptions.ResourceNotFoundException;
+import com.sourceCode.Airbnb.exceptions.UnAuthorizedException;
 import com.sourceCode.Airbnb.repositories.*;
 import com.sourceCode.Airbnb.services.BookingService;
+import com.sourceCode.Airbnb.services.CheckOutService;
+import com.stripe.model.Event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +34,10 @@ public class BookingServiceImpl implements BookingService {
     private final HotelRepository hotelRepository;
     private final RoomRepository roomRepository;
     private final InventoryRepository inventoryRepository;
+    private final CheckOutService checkOutService;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     @Override
     @Transactional
@@ -95,6 +104,11 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalStateException("booking has already expired");
         }
 
+        User user = getCurrentUser();
+        if(!user.equals(booking.getUser())){
+            throw new UnAuthorizedException("Booking user "+user.getEmail()+"is UnAuthorized..!");
+        }
+
         if(booking.getBookingStatus() != BookingStatus.RESERVED){
             throw new IllegalStateException("Booking is not under reserved state cannot add guests");
         }
@@ -113,13 +127,42 @@ public class BookingServiceImpl implements BookingService {
         return modelMapper.map(booking,BookingDto.class);
     }
 
+    @Override
+    @Transactional
+    public String intiateBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(
+                ()-> new ResourceNotFoundException("Booking not found with id: "+bookingId)
+        );
+        // checking user is belongings the same booking or not
+        User user = getCurrentUser();
+
+        if(!user.equals(booking.getUser())){
+           throw new UnAuthorizedException("booking does not belong this userid:"+user.getId());
+        }
+        if(hasBookingExpired(booking)){
+            throw new IllegalStateException("booking has already expired");
+        }
+
+        String sessionUrl = checkOutService.getCheckOutSession(booking,
+                frontendUrl+"/payments/success",frontendUrl+"/payment/failure");
+
+        booking.setBookingStatus(BookingStatus.PAYMENT_PENDING);
+        bookingRepository.save(booking);
+
+        return sessionUrl;
+    }
+
+    @Override
+    @Transactional
+    public void captureEvent(Event event) {
+
+    }
+
     public boolean hasBookingExpired(Booking booking){
         return booking.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
     }
 
     public User getCurrentUser(){
-        User user = new User();
-        user.setId(1L);
-        return user;
+       return (User) (SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
 }

@@ -27,7 +27,7 @@ public class RoomAdminController {
 
     @GetMapping
     public ResponseEntity<Set<RoomDto>> getAllRoomsInHotel(@PathVariable Long hotelId){
-        return ResponseEntity.ok(roomService.getAllRoomsINHotel(hotelId));
+        return ResponseEntity.ok(roomService.getAllRoomsInHotel(hotelId));
     }
 
     @GetMapping(path = "/{roomId}")

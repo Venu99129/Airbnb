@@ -2,6 +2,7 @@ package com.sourceCode.Airbnb.advice;
 
 import com.sourceCode.Airbnb.exceptions.IntegerFormatException;
 import com.sourceCode.Airbnb.exceptions.ResourceNotFoundException;
+import io.jsonwebtoken.JwtException;
 import org.postgresql.util.PSQLException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.naming.AuthenticationException;
+import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
 
 @RestControllerAdvice
@@ -57,6 +60,30 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .build();
         return new ResponseEntity<>(new ApiResponse<>(apiError), apiError.getStatus());
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<?>> authenticationExceptionHandler(AuthenticationException exception){
+        ApiError apiError = ApiError.builder()
+                .message(exception.getMessage())
+                .status(HttpStatus.UNAUTHORIZED).build();
+        return new ResponseEntity<>(new ApiResponse<>(apiError) , apiError.getStatus());
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponse<?>> jwtExceptionHandler(JwtException exception){
+        ApiError apiError = ApiError.builder()
+                .message(exception.getMessage())
+                .status(HttpStatus.UNAUTHORIZED).build();
+        return new ResponseEntity<>(new ApiResponse<>(apiError) , apiError.getStatus());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<?>> accessDeniedExceptionHandler(AccessDeniedException exception){
+        ApiError apiError = ApiError.builder()
+                .message(exception.getMessage())
+                .status(HttpStatus.FORBIDDEN).build();
+        return new ResponseEntity<>(new ApiResponse<>(apiError) , apiError.getStatus());
     }
 
     @ExceptionHandler(PSQLException.class)
